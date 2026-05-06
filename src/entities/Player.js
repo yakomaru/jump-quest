@@ -23,7 +23,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.lastGroundedTime = 0;
     this.jumpPressTime = -9999;
     this.canJump     = false;
-    this.lives       = 3;
   }
 
   update(cursors, time, delta) {
@@ -124,15 +123,5 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.hurtTimer = HURT_DURATION;
     this.state = STATE.HURT;
     this.setTint(0xff4444);
-
-    this.lives -= 1;
-    this.scene.events.emit('player-hurt', this.lives);
-
-    if (this.lives <= 0) {
-      this.scene.time.addEvent({
-        delay: 300,
-        callback: () => this.scene.events.emit('player-died')
-      });
-    }
   }
 }
