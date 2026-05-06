@@ -1,111 +1,106 @@
 // Tile IDs: 0=empty, 1=solid ground, 2=one-way platform, 3=spike
 // World: 30 wide x 60 tall tiles = 480x960px
-// Platforms are spaced 3-4 rows (48-64px) apart — within the ~84px max held jump.
+//
+// Platform layout:
+//   LEFT  = one-way, cols 3-12  (10 tiles)
+//   RIGHT = one-way, cols 15-24 (10 tiles)
+//   Horizontal gap between adjacent platforms: 3 tiles = 48px
+//   Vertical spacing: 4 rows = 64px (requires held jump, always reachable)
+//
+// Spike sections replace a platform in the sequence:
+//   LSPIKE: solid(3-4) + spike(5-7) + solid(8-12) — land on edge, avoid center
+//   RSPIKE: solid(15-17) + spike(18-20) + solid(21-24)
+//
+// Enemies are centered on their platform (col 7 for LEFT, col 20 for RIGHT),
+// away from the 3-tile take-off edge at cols 12 / 15.
 
-const W = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1];
-
-function plat(cols, id = 2) {
-  const row = [...W];
-  for (const c of cols) row[c] = id;
-  return row;
-}
-
-function range(a, b) { return Array.from({ length: b - a + 1 }, (_, i) => i + a); }
+const W      = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1];
+const LEFT   = [1,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1];
+const RIGHT  = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,1];
+const GOAL   = [1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1];
+const LSPIKE = [1,0,0,1,1,3,3,3,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1];
+const RSPIKE = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,3,3,3,1,1,1,1,0,0,0,0,1];
+const CEIL   = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
+const FLOOR  = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
 
 export const LEVEL_DATA = [
-  // Row 0: ceiling (gap at cols 14-15 for visual goal entrance)
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  W, // 1
-  W, // 2
-  // Row 3: goal platform (solid, cols 12-17)
-  plat(range(12, 17), 1),
-  W, // 4
-  W, // 5
-  // Row 6: one-way, left (cols 4-8)  ← 3 rows above goal platform
-  plat(range(4, 8)),
-  W, // 7
-  W, // 8
-  // Row 9: one-way, right (cols 19-24)  ← 3 rows
-  plat(range(19, 24)),
-  W, // 10
-  W, // 11
-  // Row 12: one-way, center-left (cols 9-14)  ← 3 rows
-  plat(range(9, 14)),
-  W, // 13
-  W, // 14
-  // Row 15: one-way, right-center (cols 16-21)  ← 3 rows
-  plat(range(16, 21)),
-  W, // 16
-  W, // 17
-  W, // 18
-  // Row 19: one-way, left (cols 3-7)  ← 4 rows
-  plat(range(3, 7)),
-  W, // 20
-  W, // 21
-  // Row 22: spike ledge — solid edges, spikes center  ← 3 rows
-  [1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,3,3,1,1,0,0,0,0,0,0,0,0,0,0,1],
-  W, // 23
-  W, // 24
-  W, // 25
-  // Row 26: one-way, right (cols 20-25)  ← 4 rows
-  plat(range(20, 25)),
-  W, // 27
-  W, // 28
-  W, // 29
-  // Row 30: one-way, left-center (cols 6-11)  ← 4 rows
-  plat(range(6, 11)),
-  W, // 31
-  W, // 32
-  W, // 33
-  // Row 34: one-way, right-center (cols 14-19)  ← 4 rows
-  plat(range(14, 19)),
-  W, // 35
-  W, // 36
-  // Row 37: spike ledge — solid edges, spikes center  ← 3 rows
-  [1,0,0,0,0,0,0,1,1,3,3,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  W, // 38
-  W, // 39
-  W, // 40
-  // Row 41: one-way, right (cols 17-23)  ← 4 rows
-  plat(range(17, 23)),
-  W, // 42
-  W, // 43
-  W, // 44
-  // Row 45: one-way, left (cols 3-8)  ← 4 rows
-  plat(range(3, 8)),
-  W, // 46
-  W, // 47
-  W, // 48
-  // Row 49: one-way, center (cols 11-16)  ← 4 rows
-  plat(range(11, 16)),
-  W, // 50
-  W, // 51
-  W, // 52
-  // Row 53: one-way, right (cols 19-25)  ← 4 rows
-  plat(range(19, 25)),
-  W, // 54
-  W, // 55
-  // Row 56: one-way, wide left — first step above floor  ← 3 rows
-  plat(range(4, 13)),
-  W, // 57
-  W, // 58
-  // Row 59: floor
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  CEIL,   // 0  — ceiling (gap at cols 14-15)
+  W,      // 1
+  W,      // 2
+  W,      // 3
+  GOAL,   // 4  — goal platform, solid cols 10-17
+  W,      // 5
+  W,      // 6
+  W,      // 7
+  LEFT,   // 8  — ← 4 rows above goal
+  W,      // 9
+  W,      // 10
+  W,      // 11
+  RIGHT,  // 12 — ← 4 rows
+  W,      // 13
+  W,      // 14
+  W,      // 15
+  LEFT,   // 16 — ← 4 rows
+  W,      // 17
+  W,      // 18
+  W,      // 19
+  RSPIKE, // 20 — ← 4 rows: spike hazard (RIGHT position)
+  W,      // 21
+  W,      // 22
+  W,      // 23
+  RIGHT,  // 24 — ← 4 rows
+  W,      // 25
+  W,      // 26
+  W,      // 27
+  LEFT,   // 28 — ← 4 rows
+  W,      // 29
+  W,      // 30
+  W,      // 31
+  RIGHT,  // 32 — ← 4 rows
+  W,      // 33
+  W,      // 34
+  W,      // 35
+  LSPIKE, // 36 — ← 4 rows: spike hazard (LEFT position)
+  W,      // 37
+  W,      // 38
+  W,      // 39
+  LEFT,   // 40 — ← 4 rows
+  W,      // 41
+  W,      // 42
+  W,      // 43
+  RIGHT,  // 44 — ← 4 rows
+  W,      // 45
+  W,      // 46
+  W,      // 47
+  LEFT,   // 48 — ← 4 rows
+  W,      // 49
+  W,      // 50
+  W,      // 51
+  RIGHT,  // 52 — ← 4 rows
+  W,      // 53
+  W,      // 54
+  W,      // 55
+  LEFT,   // 56 — ← 4 rows: first platform (3 rows above floor)
+  W,      // 57
+  W,      // 58
+  FLOOR,  // 59
 ];
 
-// [col, row] — enemies spawn one tile above their platform row
+// [col, row] — enemies spawn just above their platform row
+// Placed at col 7 (center of LEFT) or col 20 (center of RIGHT),
+// leaving cols 3 & 12 / 15 & 24 free as take-off edges.
 export const ENEMY_SPAWNS = [
-  [6,  6],   // row 6 platform
-  [22, 9],   // row 9 platform
-  [12, 12],  // row 12 platform
-  [18, 15],  // row 15 platform
-  [22, 26],  // row 26 platform
-  [9,  30],  // row 30 platform
-  [16, 34],  // row 34 platform
-  [20, 41],  // row 41 platform
-  [6,  45],  // row 45 platform
-  [22, 53],  // row 53 platform
+  [7,  56],  // LEFT  row 56
+  [20, 52],  // RIGHT row 52
+  [20, 44],  // RIGHT row 44
+  [7,  40],  // LEFT  row 40
+  [20, 32],  // RIGHT row 32
+  [7,  28],  // LEFT  row 28
+  [20, 24],  // RIGHT row 24
+  [7,  16],  // LEFT  row 16
+  [20, 12],  // RIGHT row 12
+  [7,   8],  // LEFT  row 8
 ];
 
-// Goal floats just above the goal platform, inside the ceiling gap
-export const GOAL_TILE = [14, 2];
+// Center of goal platform (cols 10-17, row 4)
+export const GOAL_TILE = [14, 4];
