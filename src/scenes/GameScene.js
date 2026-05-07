@@ -115,14 +115,5 @@ export default class GameScene extends Phaser.Scene {
       this._inL2 = nowInL2;
       this.cameras.main.setBackgroundColor(nowInL2 ? 0x0f1f15 : 0x1a1a2e);
     }
-
-    // Progress: 0–50% climbing L1, 50–100% traversing L2
-    let pct;
-    if (this.player.x < L1_W) {
-      pct = (1 - this.player.y / WORLD_H) * 0.5;
-    } else {
-      pct = 0.5 + ((this.player.x - L1_W) / (WORLD_W - L1_W)) * 0.5;
-    }
-    this.events.emit('progress', Phaser.Math.Clamp(pct, 0, 1));
   }
 }
