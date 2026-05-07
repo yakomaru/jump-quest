@@ -22,6 +22,11 @@ export function buildLevel(scene, levelData) {
         plat.body.checkCollision.right = false;
       } else if (id === 3) {
         spikes.create(x, y, 'tile_spike').setImmovable(true);
+      } else if (id === 4) {
+        const plat = oneWayPlats.create(x, y, 'tile_platform_l2').setImmovable(true);
+        plat.body.checkCollision.down  = false;
+        plat.body.checkCollision.left  = false;
+        plat.body.checkCollision.right = false;
       }
     }
   }

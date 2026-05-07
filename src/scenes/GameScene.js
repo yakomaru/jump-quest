@@ -5,8 +5,9 @@ import Player      from '../entities/Player.js';
 import Enemy       from '../entities/Enemy.js';
 import FlyingEnemy from '../entities/FlyingEnemy.js';
 
-const WORLD_W = 30 * TILE_SIZE;  // 480
+const WORLD_W = 90 * TILE_SIZE;  // 1440
 const WORLD_H = 60 * TILE_SIZE;  // 960
+const L1_W    = 30 * TILE_SIZE;  // 480 — boundary between L1 and L2
 
 export default class GameScene extends Phaser.Scene {
   constructor() { super('GameScene'); }
@@ -29,8 +30,8 @@ export default class GameScene extends Phaser.Scene {
       'goal'
     );
 
-    // Player spawns near bottom center
-    this.player = new Player(this, WORLD_W / 2, WORLD_H - 3 * TILE_SIZE);
+    // Player spawns near bottom of L1
+    this.player = new Player(this, 15 * TILE_SIZE, WORLD_H - 3 * TILE_SIZE);
 
     // Walking enemies (ledge-aware)
     this.enemies = this.physics.add.group({ classType: Enemy, runChildUpdate: false });
@@ -97,7 +98,9 @@ export default class GameScene extends Phaser.Scene {
       this.scene.launch('UIScene');
     }
 
-    this._won = false;
+    this._won   = false;
+    this._inL2  = false;
+    this.cameras.main.setBackgroundColor(0x1a1a2e);
   }
 
   update(time, delta) {
@@ -106,8 +109,20 @@ export default class GameScene extends Phaser.Scene {
     this.enemies.getChildren().forEach(e => e.update());
     this.flyingEnemies.forEach(fe => fe.update());
 
-    // Emit height progress (0=bottom, 1=top)
-    const pct = 1 - (this.player.y / WORLD_H);
+    // Background shifts to dark forest green when entering L2
+    const nowInL2 = this.player.x >= L1_W;
+    if (nowInL2 !== this._inL2) {
+      this._inL2 = nowInL2;
+      this.cameras.main.setBackgroundColor(nowInL2 ? 0x0f1f15 : 0x1a1a2e);
+    }
+
+    // Progress: 0–50% climbing L1, 50–100% traversing L2
+    let pct;
+    if (this.player.x < L1_W) {
+      pct = (1 - this.player.y / WORLD_H) * 0.5;
+    } else {
+      pct = 0.5 + ((this.player.x - L1_W) / (WORLD_W - L1_W)) * 0.5;
+    }
     this.events.emit('progress', Phaser.Math.Clamp(pct, 0, 1));
   }
 }

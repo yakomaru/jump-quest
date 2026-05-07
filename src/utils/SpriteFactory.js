@@ -2,6 +2,7 @@ export function createAllTextures(scene) {
   createPlayerTexture(scene);
   createGroundTexture(scene);
   createPlatformTexture(scene);
+  createPlatformL2Texture(scene);
   createSpikeTexture(scene);
   createEnemyTexture(scene);
   createFlyingEnemyTexture(scene);
@@ -53,6 +54,18 @@ function createPlatformTexture(scene) {
   g.fillStyle(0x37474f);
   g.fillRect(0, 4, 16, 1);
   g.generateTexture('tile_platform', 16, 16);
+  g.destroy();
+}
+
+function createPlatformL2Texture(scene) {
+  const g = scene.add.graphics();
+  g.fillStyle(0xbf6030);  // terracotta base
+  g.fillRect(0, 0, 16, 16);
+  g.fillStyle(0xd4804a);  // warm amber highlight on top edge
+  g.fillRect(0, 0, 16, 4);
+  g.fillStyle(0x8b3a1a);  // dark rust shadow strip
+  g.fillRect(0, 4, 16, 1);
+  g.generateTexture('tile_platform_l2', 16, 16);
   g.destroy();
 }
 
