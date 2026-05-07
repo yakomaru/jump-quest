@@ -62,11 +62,24 @@ const SC_R = r(34, 37, 2);  // Right step (cols 34–37)
 
 // ── L2 traversal platform overrides (type 4 = amber one-way) ─────────────────
 
-// Row 7: P1 (cols 38–45), P3 (cols 59–66), P5 (cols 80–87)
-const P135 = { ...r(38, 45, 4), ...r(59, 66, 4), ...r(80, 87, 4) };
+// Row 7: P1 (38–41), stair1-top (51), P3 (53–55), stair2-top (65), P5 (67–69), PG (80–85)
+const P135 = {
+  ...r(38, 41, 4),
+  51: 4,
+  ...r(53, 55, 4),
+  65: 4,
+  ...r(67, 69, 4),
+  ...r(80, 85, 4),
+};
 
-// Row 9: P2 (cols 49–56), P4 (cols 70–77)
-const P24  = { ...r(49, 56, 4), ...r(70, 77, 4) };
+// Row 9: P2 (44–47), stair1-base (49), P4 (58–61), stair2-base (63), P6 (73–76)
+const P24  = {
+  ...r(44, 47, 4),
+  49: 4,
+  ...r(58, 61, 4),
+  63: 4,
+  ...r(73, 76, 4),
+};
 
 // ── Special full-width rows ───────────────────────────────────────────────────
 
@@ -96,10 +109,10 @@ export const LEVEL_DATA = [
   e(_W, { 29: 0 }),                    // 3  — clear col-29 wall for bridge body clearance
   e(_GOAL, r(18, 37, 2)),              // 4  — bridge: goal + extension to col 37 (col 29 → type 2)
   e(_W, SC_L),                         // 5  — staircase top Left step  (cols 30–33)
-  e(_W),                               // 6
-  e(_W, P135),                         // 7  — L2 platforms P1, P3, P5
-  e(_APP3, SC_R),                      // 8  — approach 3 + staircase Right step (cols 34–37)
-  e(_W, P24),                          // 9  — L2 platforms P2, P4
+  e(_W, { 55: 3, 69: 3 }),             // 6  — spikes above P3 right (col 55) and P5 right (col 69)
+  e(_W, P135),                         // 7  — L2 platforms P1, stair1-top, P3, stair2-top, P5, PG
+  e(_APP3, { ...SC_R, 43: 3, 50: 4, 64: 4, 78: 4 }), // 8 — approach 3 + SC_R + spike(43) + stair1-mid(50) + stair2-mid(64) + bridge(78)
+  e(_W, P24),                          // 9  — L2 platforms P2, stair1-base, P4, stair2-base, P6
   e(_W),                               // 10
   e(_APP2, SC_L),                      // 11 — approach 2 + staircase Left step
   e(_W),                               // 12
@@ -161,8 +174,8 @@ export const ENEMY_SPAWNS = [
   [12, 14],  // APP1
   // Level 2
   [50, 35],  // L2 fall-floor patrol
-  [52,  9],  // P2 patrol
-  [73,  9],  // P4 patrol
+  [45,  9],  // P2 patrol (cols 44–47)
+  [74,  9],  // P6 patrol (cols 73–76)
 ];
 
 // Flying enemies [x_px, y_px, patrol_range_px]
@@ -172,9 +185,9 @@ export const FLYING_SPAWNS = [
   [240, 24 * 16, 70],  // between STAIR-A (row 23) and RMID (row 26)
   [210, 12 * 16, 60],  // between APP1 (row 14) and APP2 (row 11)
   // Level 2
-  [928,  128, 36],     // guards gap between P2 (ends col 56) and P3 (starts col 59)
-  [1072, 224, 60],     // guards drop zone between P3 and P4
+  [896,  128, 32],     // guards gap between P3 (ends col 55) and P4 (starts col 58)
+  [1136, 128, 32],     // guards gap between P5 (ends col 69) and P6 (starts col 73)
 ];
 
-// [col, row] — Level 2 goal above P5 platform (row 7, cols 80–87)
+// [col, row] — Level 2 goal above PG platform (row 7, cols 80–85)
 export const GOAL_TILE = [85, 6];
