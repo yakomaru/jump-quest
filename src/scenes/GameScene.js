@@ -1,8 +1,9 @@
 import { TILE_SIZE, GRAVITY } from '../constants.js';
 import { buildLevel } from '../level/LevelBuilder.js';
-import { LEVEL_DATA, ENEMY_SPAWNS, GOAL_TILE } from '../level/LevelData.js';
-import Player from '../entities/Player.js';
-import Enemy  from '../entities/Enemy.js';
+import { LEVEL_DATA, ENEMY_SPAWNS, FLYING_SPAWNS, GOAL_TILE } from '../level/LevelData.js';
+import Player      from '../entities/Player.js';
+import Enemy       from '../entities/Enemy.js';
+import FlyingEnemy from '../entities/FlyingEnemy.js';
 
 const WORLD_W = 30 * TILE_SIZE;  // 480
 const WORLD_H = 60 * TILE_SIZE;  // 960
@@ -16,9 +17,9 @@ export default class GameScene extends Phaser.Scene {
 
     // Build level geometry
     const { platforms, oneWayPlats, spikes } = buildLevel(this, LEVEL_DATA);
-    this.platforms    = platforms;
-    this.oneWayPlats  = oneWayPlats;
-    this.spikes       = spikes;
+    this.platforms   = platforms;
+    this.oneWayPlats = oneWayPlats;
+    this.spikes      = spikes;
 
     // Goal
     const [gCol, gRow] = GOAL_TILE;
@@ -31,11 +32,23 @@ export default class GameScene extends Phaser.Scene {
     // Player spawns near bottom center
     this.player = new Player(this, WORLD_W / 2, WORLD_H - 3 * TILE_SIZE);
 
-    // Enemies
+    // Walking enemies (ledge-aware)
     this.enemies = this.physics.add.group({ classType: Enemy, runChildUpdate: false });
     ENEMY_SPAWNS.forEach(([col, row]) => {
-      const e = new Enemy(this, col * TILE_SIZE + TILE_SIZE / 2, row * TILE_SIZE - TILE_SIZE / 2);
+      const e = new Enemy(
+        this,
+        col * TILE_SIZE + TILE_SIZE / 2,
+        row * TILE_SIZE - TILE_SIZE / 2,
+        platforms,
+        oneWayPlats
+      );
       this.enemies.add(e);
+    });
+
+    // Flying enemies — plain array so physics.add.group can't reset allowGravity
+    this.flyingEnemies = [];
+    FLYING_SPAWNS.forEach(([x, y, range]) => {
+      this.flyingEnemies.push(new FlyingEnemy(this, x, y, range));
     });
 
     // Colliders
@@ -53,7 +66,12 @@ export default class GameScene extends Phaser.Scene {
       _player.applyKnockback(enemy.x);
     });
 
-    // Spike contact → knockback (treat as enemy at spike center)
+    // Flying enemy contact → knockback (overlap accepts plain arrays)
+    this.physics.add.overlap(this.player, this.flyingEnemies, (_player, fe) => {
+      _player.applyKnockback(fe.x);
+    });
+
+    // Spike contact → knockback
     this.physics.add.overlap(this.player, spikes, (_player, spike) => {
       _player.applyKnockback(spike.x);
     });
@@ -85,7 +103,8 @@ export default class GameScene extends Phaser.Scene {
   update(time, delta) {
     this.player.update(this.cursors, time, delta);
 
-    this.enemies.getChildren().forEach(e => e.update(delta));
+    this.enemies.getChildren().forEach(e => e.update());
+    this.flyingEnemies.forEach(fe => fe.update());
 
     // Emit height progress (0=bottom, 1=top)
     const pct = 1 - (this.player.y / WORLD_H);

@@ -4,6 +4,7 @@ export function createAllTextures(scene) {
   createPlatformTexture(scene);
   createSpikeTexture(scene);
   createEnemyTexture(scene);
+  createFlyingEnemyTexture(scene);
   createGoalTexture(scene);
   createHeartTexture(scene);
 }
@@ -98,6 +99,24 @@ function createGoalTexture(scene) {
   g.fillStyle(0xffffff);
   g.fillRect(6, 6, 4, 1);
   g.generateTexture('goal', 16, 16);
+  g.destroy();
+}
+
+function createFlyingEnemyTexture(scene) {
+  const g = scene.add.graphics();
+  // wings (triangles)
+  g.fillStyle(0x7b1fa2);
+  g.fillTriangle(0, 8, 5, 3, 5, 13);
+  g.fillTriangle(16, 8, 11, 3, 11, 13);
+  // body (diamond)
+  g.fillStyle(0xab47bc);
+  g.fillTriangle(8, 1, 4, 8, 12, 8);
+  g.fillTriangle(8, 15, 4, 8, 12, 8);
+  // eyes
+  g.fillStyle(0xff1744);
+  g.fillRect(5, 6, 2, 2);
+  g.fillRect(9, 6, 2, 2);
+  g.generateTexture('enemy_flying', 16, 16);
   g.destroy();
 }
 

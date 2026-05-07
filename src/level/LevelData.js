@@ -1,106 +1,121 @@
-// Tile IDs: 0=empty, 1=solid ground, 2=one-way platform, 3=spike
+// Tile IDs: 0=empty, 1=solid ground, 2=one-way platform
 // World: 30 wide x 60 tall tiles = 480x960px
 //
-// Platform layout:
-//   LEFT  = one-way, cols 3-12  (10 tiles)
-//   RIGHT = one-way, cols 15-24 (10 tiles)
-//   Horizontal gap between adjacent platforms: 3 tiles = 48px
-//   Vertical spacing: 4 rows = 64px (requires held jump, always reachable)
+// Section overview (bottom → top):
+//   INTRO SECTION  rows 59–41 : wide intro + ascending right staircase
+//   MIDDLE SECTION rows 38–26 : wide rest platform, center pivots, mid platforms
+//   UPPER SECTION  rows 23–8  : left-descending staircase, three approach platforms
+//   GOAL           row 4      : goal platform (one-way, cols 10-17)
 //
-// Spike sections replace a platform in the sequence:
-//   LSPIKE: solid(3-4) + spike(5-7) + solid(8-12) — land on edge, avoid center
-//   RSPIKE: solid(15-17) + spike(18-20) + solid(21-24)
-//
-// Enemies are centered on their platform (col 7 for LEFT, col 20 for RIGHT),
-// away from the 3-tile take-off edge at cols 12 / 15.
+// All adjacent platform jumps verified ≤ 44px horizontal gap (58px max at 3-row height)
 
-const W      = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1];
-const LEFT   = [1,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1];
-const RIGHT  = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,1];
-const GOAL   = [1,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,1];
-const LSPIKE = [1,0,0,1,1,3,3,3,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1];
-const RSPIKE = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,3,3,3,1,1,1,1,0,0,0,0,1];
-const CEIL   = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
-const FLOOR  = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
+const W       = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1];
+const FLOOR   = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
+const CEIL    = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
+
+// Intro section (bottom)
+const INTRO   = [1,0,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 2-14
+const STAIR0  = [1,0,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 2-5
+const STAIR1  = [1,0,0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 8-10
+const STAIR2  = [1,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 13-15
+const STAIR3  = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0,0,1]; // cols 18-20
+const STAIR4  = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0,0,1]; // cols 23-25
+
+// Middle section
+const RREST   = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0,1]; // cols 15-26
+const CENTERL = [1,0,0,0,0,0,0,0,0,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 9-14
+const CENTERR = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,0,0,0,0,0,0,1]; // cols 17-22
+const LMID    = [1,0,0,0,0,0,0,0,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 8-13
+const RMID    = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,0,0,0,0,0,0,0,1]; // cols 15-21
+
+// Upper staircase (descending left, then turn to goal approach)
+const STAIRA  = [1,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 12-14
+const STAIRB  = [1,0,0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 8-10
+const STAIRC  = [1,0,0,0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 4-6
+
+// Goal approach
+const APP1    = [1,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 9-15
+const APP2    = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,1]; // cols 14-20
+const APP3    = [1,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 8-15
+const GOAL    = [1,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 10-17
 
 export const LEVEL_DATA = [
-  CEIL,   // 0  — ceiling (gap at cols 14-15)
-  W,      // 1
-  W,      // 2
-  W,      // 3
-  GOAL,   // 4  — goal platform, solid cols 10-17
-  W,      // 5
-  W,      // 6
-  W,      // 7
-  LEFT,   // 8  — ← 4 rows above goal
-  W,      // 9
-  W,      // 10
-  W,      // 11
-  RIGHT,  // 12 — ← 4 rows
-  W,      // 13
-  W,      // 14
-  W,      // 15
-  LEFT,   // 16 — ← 4 rows
-  W,      // 17
-  W,      // 18
-  W,      // 19
-  RSPIKE, // 20 — ← 4 rows: spike hazard (RIGHT position)
-  W,      // 21
-  W,      // 22
-  W,      // 23
-  RIGHT,  // 24 — ← 4 rows
-  W,      // 25
-  W,      // 26
-  W,      // 27
-  LEFT,   // 28 — ← 4 rows
-  W,      // 29
-  W,      // 30
-  W,      // 31
-  RIGHT,  // 32 — ← 4 rows
-  W,      // 33
-  W,      // 34
-  W,      // 35
-  LSPIKE, // 36 — ← 4 rows: spike hazard (LEFT position)
-  W,      // 37
-  W,      // 38
-  W,      // 39
-  LEFT,   // 40 — ← 4 rows
-  W,      // 41
-  W,      // 42
-  W,      // 43
-  RIGHT,  // 44 — ← 4 rows
-  W,      // 45
-  W,      // 46
-  W,      // 47
-  LEFT,   // 48 — ← 4 rows
-  W,      // 49
-  W,      // 50
-  W,      // 51
-  RIGHT,  // 52 — ← 4 rows
-  W,      // 53
-  W,      // 54
-  W,      // 55
-  LEFT,   // 56 — ← 4 rows: first platform (3 rows above floor)
-  W,      // 57
-  W,      // 58
-  FLOOR,  // 59
+  CEIL,    // 0  — ceiling (gap at cols 14-15)
+  W,       // 1
+  W,       // 2
+  W,       // 3
+  GOAL,    // 4  — goal platform
+  W,       // 5
+  W,       // 6
+  W,       // 7
+  APP3,    // 8  — approach 3 (cols 8-15)
+  W,       // 9
+  W,       // 10
+  APP2,    // 11 — approach 2 (cols 14-20)
+  W,       // 12
+  W,       // 13
+  APP1,    // 14 — approach 1 (cols 9-15)
+  W,       // 15
+  W,       // 16
+  STAIRC,  // 17 — stair C (cols 4-6)
+  W,       // 18
+  W,       // 19
+  STAIRB,  // 20 — stair B (cols 8-10)
+  W,       // 21
+  W,       // 22
+  STAIRA,  // 23 — stair A (cols 12-14)
+  W,       // 24
+  W,       // 25
+  RMID,    // 26 — right-mid (cols 15-21)
+  W,       // 27
+  W,       // 28
+  LMID,    // 29 — left-mid (cols 8-13)
+  W,       // 30
+  W,       // 31
+  CENTERR, // 32 — center-right (cols 17-22)
+  W,       // 33
+  W,       // 34
+  CENTERL, // 35 — center-left (cols 9-14)
+  W,       // 36
+  W,       // 37
+  RREST,   // 38 — wide right rest (cols 15-26)
+  W,       // 39
+  W,       // 40
+  STAIR4,  // 41 — ascending stair 4 (cols 23-25)
+  W,       // 42
+  W,       // 43
+  STAIR3,  // 44 — ascending stair 3 (cols 18-20)
+  W,       // 45
+  W,       // 46
+  STAIR2,  // 47 — ascending stair 2 (cols 13-15)
+  W,       // 48
+  W,       // 49
+  STAIR1,  // 50 — ascending stair 1 (cols 8-10)
+  W,       // 51
+  W,       // 52
+  STAIR0,  // 53 — ascending stair 0 (cols 2-5)
+  W,       // 54
+  W,       // 55
+  INTRO,   // 56 — wide intro (cols 2-14)
+  W,       // 57
+  W,       // 58
+  FLOOR,   // 59
 ];
 
-// [col, row] — enemies spawn just above their platform row
-// Placed at col 7 (center of LEFT) or col 20 (center of RIGHT),
-// leaving cols 3 & 12 / 15 & 24 free as take-off edges.
+// [col, row] — walking enemies spawn just above their platform row
 export const ENEMY_SPAWNS = [
-  [7,  56],  // LEFT  row 56
-  [20, 52],  // RIGHT row 52
-  [20, 44],  // RIGHT row 44
-  [7,  40],  // LEFT  row 40
-  [20, 32],  // RIGHT row 32
-  [7,  28],  // LEFT  row 28
-  [20, 24],  // RIGHT row 24
-  [7,  16],  // LEFT  row 16
-  [20, 12],  // RIGHT row 12
-  [7,   8],  // LEFT  row 8
+  [8,  56],  // INTRO wide platform
+  [21, 38],  // RREST wide platform
+  [18, 26],  // RMID
+  [12, 14],  // APP1
 ];
 
-// Center of goal platform (cols 10-17, row 4)
+// [x_px, y_px, patrol_range_px] — flying enemies patrol mid-air
+export const FLYING_SPAWNS = [
+  [220, 33 * 16, 70],  // between CENTER-R (row 32) and CENTER-L (row 35)
+  [240, 24 * 16, 70],  // between STAIR-A (row 23) and RMID (row 26)
+  [210, 12 * 16, 60],  // between APP1 (row 14) and APP2 (row 11)
+];
+
+// [col, row] — goal pickup position (row 3 = empty space above GOAL platform row 4)
 export const GOAL_TILE = [14, 3];
