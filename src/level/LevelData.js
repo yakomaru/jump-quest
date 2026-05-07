@@ -117,7 +117,7 @@ export const LEVEL_DATA = [
   e(_W, SC_L),                         // 5  — staircase top Left step  (cols 30–33)
   e(_W, { 55: 3, 69: 3, 95: 3 }),      // 6  — spikes above P3 right (55), P5 right (69), stair3-top (95)
   e(_W, P135),                         // 7  — L2 platforms P1, stair1-top, P3, stair2-top, P5, PG
-  e(_APP3, { ...SC_R, 43: 3, 50: 4, 64: 4, 78: 4, 87: 3, 94: 4 }), // 8 — approach 3 + SC_R + spike(43) + stair1-mid(50) + stair2-mid(64) + bridge(78) + spike(87) + stair3-mid(94)
+  e(_APP3, { ...SC_R, 44: 3, 50: 4, 64: 4, 78: 4, 88: 3, 94: 4 }), // 8 — approach 3 + SC_R + spike(44) + stair1-mid(50) + stair2-mid(64) + bridge(78) + spike(88) + stair3-mid(94)
   e(_W, P24),                          // 9  — L2 platforms P2, stair1-base, P4, stair2-base, P6
   e(_W),                               // 10
   e(_APP2, SC_L),                      // 11 — approach 2 + staircase Left step
