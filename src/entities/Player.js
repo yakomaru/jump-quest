@@ -1,5 +1,5 @@
 import {
-  GRAVITY, WALK_SPEED, AIR_CONTROL, JUMP_VELOCITY,
+  GRAVITY, WALK_SPEED, AIR_CONTROL, AIR_ACCEL, JUMP_VELOCITY,
   JUMP_HOLD_GRAV, JUMP_HOLD_MAX, DRAG_GROUND, DRAG_AIR,
   COYOTE_TIME, JUMP_BUFFER, KNOCKBACK_X, KNOCKBACK_Y, HURT_DURATION
 } from '../constants.js';
@@ -75,17 +75,33 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     // horizontal movement
-    const speed = onGround ? WALK_SPEED : WALK_SPEED * AIR_CONTROL;
-    if (cursors.left.isDown) {
-      this.body.setVelocityX(-speed);
-      this.flipX = true;
-    } else if (cursors.right.isDown) {
-      this.body.setVelocityX(speed);
-      this.flipX = false;
+    if (onGround) {
+      this.body.setAccelerationX(0);
+      if (cursors.left.isDown) {
+        this.body.setVelocityX(-WALK_SPEED);
+        this.flipX = true;
+      } else if (cursors.right.isDown) {
+        this.body.setVelocityX(WALK_SPEED);
+        this.flipX = false;
+      } else {
+        this.body.setDragX(DRAG_GROUND);
+      }
     } else {
-      // apply drag
-      const drag = onGround ? DRAG_GROUND : DRAG_AIR;
-      this.body.setDragX(drag);
+      // in air: gradually steer, can't instantly reverse direction
+      if (cursors.left.isDown) {
+        this.body.setDragX(0);
+        this.body.setAccelerationX(-AIR_ACCEL);
+        this.flipX = true;
+      } else if (cursors.right.isDown) {
+        this.body.setDragX(0);
+        this.body.setAccelerationX(AIR_ACCEL);
+        this.flipX = false;
+      } else {
+        this.body.setAccelerationX(0);
+        this.body.setDragX(DRAG_AIR);
+      }
+      const airCap = WALK_SPEED * AIR_CONTROL;
+      this.body.velocity.x = Phaser.Math.Clamp(this.body.velocity.x, -airCap, airCap);
     }
 
     // variable jump gravity reduction while holding
