@@ -13,7 +13,7 @@ export default class FlyingEnemy extends Phaser.Physics.Arcade.Sprite {
   update() {
     if (!this.active) return;
 
-    this.body.setVelocityX(60 * this.direction);
+    this.body.setVelocityX(85 * this.direction);
     if (this.x > this.startX + this.patrolRange) this.direction = -1;
     if (this.x < this.startX - this.patrolRange) this.direction =  1;
     this.flipX = this.direction < 0;

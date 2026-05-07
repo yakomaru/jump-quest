@@ -14,7 +14,7 @@ const FLOOR   = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
 const CEIL    = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
 
 // Intro section (bottom)
-const INTRO   = [1,0,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 2-14
+const INTRO   = [1,0,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 2-9
 const STAIR0  = [1,0,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 2-5
 const STAIR1  = [1,0,0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 8-10
 const STAIR2  = [1,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 13-15
@@ -22,7 +22,7 @@ const STAIR3  = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0,0,1]; /
 const STAIR4  = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0,0,1]; // cols 23-25
 
 // Middle section
-const RREST   = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0,1]; // cols 15-26
+const RREST   = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,0,0,0,0,0,0,1]; // cols 15-22
 const CENTERL = [1,0,0,0,0,0,0,0,0,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 9-14
 const CENTERR = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,0,0,0,0,0,0,1]; // cols 17-22
 const LMID    = [1,0,0,0,0,0,0,0,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 8-13
@@ -32,6 +32,11 @@ const RMID    = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,0,0,0,0,0,0,0,1]; /
 const STAIRA  = [1,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 12-14
 const STAIRB  = [1,0,0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 8-10
 const STAIRC  = [1,0,0,0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 4-6
+
+// Spike rows — placed one row above their platform so they appear on the surface
+const SP_STAIR2  = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // spike at col 14
+const SP_CENTERL = [1,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // spike at col 9
+const SP_STAIRB  = [1,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // spike at col 9
 
 // Goal approach
 const APP1    = [1,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; // cols 9-15
@@ -58,9 +63,9 @@ export const LEVEL_DATA = [
   W,       // 15
   W,       // 16
   STAIRC,  // 17 — stair C (cols 4-6)
-  W,       // 18
-  W,       // 19
-  STAIRB,  // 20 — stair B (cols 8-10)
+  W,          // 18
+  SP_STAIRB,  // 19 — spike above STAIRB col 9
+  STAIRB,     // 20 — stair B (cols 8-10)
   W,       // 21
   W,       // 22
   STAIRA,  // 23 — stair A (cols 12-14)
@@ -73,9 +78,9 @@ export const LEVEL_DATA = [
   W,       // 30
   W,       // 31
   CENTERR, // 32 — center-right (cols 17-22)
-  W,       // 33
-  W,       // 34
-  CENTERL, // 35 — center-left (cols 9-14)
+  W,           // 33
+  SP_CENTERL,  // 34 — spike above CENTERL col 9
+  CENTERL,     // 35 — center-left (cols 9-14)
   W,       // 36
   W,       // 37
   RREST,   // 38 — wide right rest (cols 15-26)
@@ -85,9 +90,9 @@ export const LEVEL_DATA = [
   W,       // 42
   W,       // 43
   STAIR3,  // 44 — ascending stair 3 (cols 18-20)
-  W,       // 45
-  W,       // 46
-  STAIR2,  // 47 — ascending stair 2 (cols 13-15)
+  W,          // 45
+  SP_STAIR2,  // 46 — spike above STAIR2 col 14
+  STAIR2,     // 47 — ascending stair 2 (cols 13-15)
   W,       // 48
   W,       // 49
   STAIR1,  // 50 — ascending stair 1 (cols 8-10)

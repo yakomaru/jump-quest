@@ -71,9 +71,9 @@ export default class GameScene extends Phaser.Scene {
       _player.applyKnockback(fe.x);
     });
 
-    // Spike contact → knockback
+    // Spike contact → knockback (only when falling or walking, not when jumping up through)
     this.physics.add.overlap(this.player, spikes, (_player, spike) => {
-      _player.applyKnockback(spike.x);
+      if (_player.body.velocity.y >= 0) _player.applyKnockback(spike.x);
     });
 
     // Goal contact → win
