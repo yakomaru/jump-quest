@@ -5,7 +5,7 @@ import Player      from '../entities/Player.js';
 import Enemy       from '../entities/Enemy.js';
 import FlyingEnemy from '../entities/FlyingEnemy.js';
 
-const WORLD_W = 90 * TILE_SIZE;  // 1440
+const WORLD_W = 120 * TILE_SIZE;  // 1920
 const WORLD_H = 60 * TILE_SIZE;  // 960
 const L1_W    = 30 * TILE_SIZE;  // 480 — boundary between L1 and L2
 
