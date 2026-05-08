@@ -5,9 +5,10 @@ import Player      from '../entities/Player.js';
 import Enemy       from '../entities/Enemy.js';
 import FlyingEnemy from '../entities/FlyingEnemy.js';
 
-const WORLD_W = 120 * TILE_SIZE;  // 1920
-const WORLD_H = 60 * TILE_SIZE;  // 960
-const L1_W    = 30 * TILE_SIZE;  // 480 — boundary between L1 and L2
+const WORLD_W  = 120 * TILE_SIZE;  // 1920
+const WORLD_H  =  90 * TILE_SIZE;  // 1440 — expanded to fit Level 3 above L1/L2
+const L1_W     =  30 * TILE_SIZE;  //  480 — boundary between L1 (cols 0–29) and L2/L3 (cols 30–119)
+const L3_BOTTOM = 30 * TILE_SIZE;  //  480 — bottom of Level 3 zone (world rows 0–29)
 
 export default class GameScene extends Phaser.Scene {
   constructor() { super('GameScene'); }
@@ -98,8 +99,8 @@ export default class GameScene extends Phaser.Scene {
       this.scene.launch('UIScene');
     }
 
-    this._won   = false;
-    this._inL2  = false;
+    this._won  = false;
+    this._zone = 1;  // 1=L1, 2=L2, 3=L3
     this.cameras.main.setBackgroundColor(0x1a1a2e);
   }
 
@@ -109,11 +110,13 @@ export default class GameScene extends Phaser.Scene {
     this.enemies.getChildren().forEach(e => e.update());
     this.flyingEnemies.forEach(fe => fe.update());
 
-    // Background shifts to dark forest green when entering L2
-    const nowInL2 = this.player.x >= L1_W;
-    if (nowInL2 !== this._inL2) {
-      this._inL2 = nowInL2;
-      this.cameras.main.setBackgroundColor(nowInL2 ? 0x0f1f15 : 0x1a1a2e);
+    // Background color by zone: L1=dark purple, L2=dark green, L3=dark steel blue
+    const inL2   = this.player.x >= L1_W;
+    const zone   = (inL2 && this.player.y < L3_BOTTOM) ? 3 : inL2 ? 2 : 1;
+    if (zone !== this._zone) {
+      this._zone = zone;
+      const bg = [0x1a1a2e, 0x0f1f15, 0x0a1520];
+      this.cameras.main.setBackgroundColor(bg[zone - 1]);
     }
   }
 }

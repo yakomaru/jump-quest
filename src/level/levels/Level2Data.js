@@ -1,5 +1,6 @@
 // Tile IDs: 0=empty, 1=solid, 2=one-way (staircase), 3=spike, 4=one-way platform (amber)
 // L2 spans cols 30–119 (horizontal traverse; fall-floor at row 35; re-entry staircase cols 30–37)
+// Right-side staircase at cols 104–116 connects up to L3 (ceiling row removed to allow falling from L3)
 
 import { r } from '../levelUtils.js';
 
@@ -12,6 +13,10 @@ function l2(overrides = {}) {
 }
 
 const L2_SOLID = new Array(90).fill(1);
+
+// Right-side staircase steps connecting up to L3
+const SC_INNER = r(104, 109, 4);   // cols 104–109 (inner step)
+const SC_OUTER = r(111, 116, 4);   // cols 111–116 (outer step)
 
 const SC_L = r(30, 33, 2);  // Left step  (cols 30–33)
 const SC_R = r(34, 37, 2);  // Right step (cols 34–37)
@@ -40,11 +45,11 @@ const P24 = {
 };
 
 export const LEVEL_2_ROWS = [
-  L2_SOLID,                                                              // 0  — ceiling
-  l2(),                                                                  // 1
+  l2(),                                                                  // 0  — ceiling removed (open to L3 above)
+  l2(SC_OUTER),                                                          // 1  — L3 staircase outer step
   l2(),                                                                  // 2
   l2(),                                                                  // 3
-  l2(r(30, 37, 2)),                                                      // 4  — bridge cols 30–37
+  l2({ ...r(30, 37, 2), ...SC_INNER }),                                  // 4  — bridge cols 30–37 + L3 staircase inner step
   l2(SC_L),                                                              // 5  — staircase Left step
   l2({ 55: 3, 69: 3, 95: 3 }),                                           // 6  — spikes above P3 right, P5 right, stair3-top
   l2(P135),                                                              // 7  — platforms P1, stair1-top, P3, stair2-top, P5, PG, stair3-top, NEW_PG
@@ -117,5 +122,4 @@ export const LEVEL_2_FLYING_SPAWNS = [
   [1568, 128, 32],  // guards gap between stair3-top (col 95) and NEW_PG (starts col 102)
 ];
 
-// [col, row] — Level 2 goal above NEW_PG platform (row 7, cols 102–110)
-export const GOAL_TILE = [106, 6];
+// Goal moved to Level 3 — see Level3Data.js
